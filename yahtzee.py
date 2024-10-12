@@ -42,7 +42,37 @@ class YahtzeeGame:
         return self.bob.get_dice_values()
 
     def get_player_scores(self):
-        return {f"Scorepula {i + 1}": 0 for i in range(13)}
+        # Actualizăm numele scorurilor pentru jucător
+        return {
+            "Ones": 0,
+            "Twos": 0,
+            "Threes": 0,
+            "Fours": 0,
+            "Fives": 0,
+            "Sixes": 0,
+            "Three of a Kind": 0,
+            "Four of a Kind": 0,
+            "Full House": 0,
+            "Small Straight": 0,
+            "Large Straight": 0,
+            "Yahtzee": 0,
+            "Chance": 0
+        }
 
     def get_bob_scores(self):
-        return {f"Scoffre {i + 1}": 0 for i in range(13)}
+        # Actualizăm numele scorurilor pentru Bob
+        return {
+            "Ones": 0,
+            "Twos": 0,
+            "Threes": 0,
+            "Fours": 0,
+            "Fives": 0,
+            "Sixes": 0,
+            "Three of a Kind": 0,
+            "Four of a Kind": 0,
+            "Full House": 0,
+            "Small Straight": 0,
+            "Large Straight": 0,
+            "Yahtzee": 0,
+            "Chance": 0
+        }
