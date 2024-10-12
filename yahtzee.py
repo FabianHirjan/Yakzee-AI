@@ -42,7 +42,7 @@ class YahtzeeGame:
         return self.bob.get_dice_values()
 
     def get_player_scores(self):
-        return {f"Score {i + 1}": 0 for i in range(13)}
+        return {f"Scorepula {i + 1}": 0 for i in range(13)}
 
     def get_bob_scores(self):
-        return {f"Score {i + 1}": 0 for i in range(13)}
+        return {f"Scoffre {i + 1}": 0 for i in range(13)}

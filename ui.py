@@ -1,133 +1,118 @@
 import tkinter as tk
 from yahtzee import YahtzeeGame
+from tkinter import ttk
 
 
 class YahtzeeApp:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Yahtzee")
+
+        self.root.geometry("1200x800")
+        self.root.configure(bg="#2E3B4E")
+
         self.game = YahtzeeGame()
 
-        # Player frame
-        self.player_frame = tk.Frame(self.root)
-        self.player_frame.pack(side=tk.TOP, fill=tk.X)
+        self.label_style = {
+            "font": ("Arial", 18), "bg": "#4E5D6C", "fg": "white"}
+        self.button_style = {"font": (
+            "Arial", 18), "bg": "#FF00FF", "fg": "white", "activebackground": "#FFA500"}
 
-        # Playber labe
-        self.player_label = tk.Label(
-            self.player_frame, text="Player: You", font=("Arial", 24))
-        self.player_label.pack()
+        self.dice_frame = tk.Frame(self.root, bg="#2E3B4E")
+        self.dice_frame.pack(side=tk.TOP, pady=20)
 
-        # Dices and play button frame
-        self.bottom_frame = tk.Frame(self.root)
-        self.bottom_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        self.dice_buttons, self.dice_labels = self.create_dice_widgets(
+            row_offset=0, button_command=self.toggle_dice_selection)
+        self.bob_dice_labels = self.create_dice_widgets(
+            row_offset=2, button_state=tk.DISABLED)[1]
 
-        # Play button
         self.play_button = tk.Button(
-            self.bottom_frame, text="Roll Dice", font=("Arial", 18), command=self.play)
-        self.play_button.pack(pady=10)
+            self.root, text="Roll Dice", **self.button_style, command=self.play)
+        self.play_button.pack(pady=20)
 
-        # Dices
-        self.dice_labels = []
-        self.dice_buttons = []
-        for i in range(5):
-            button = tk.Button(self.bottom_frame, text="Die " + str(i + 1), font=(
-                "Arial", 18), width=5, command=lambda i=i: self.toggle_dice_selection(i))
-            button.pack(side=tk.LEFT, padx=5)
-            self.dice_buttons.append(button)
-            self.dice_labels.append(
-                tk.Label(self.bottom_frame, text="1", font=("Arial", 18), width=5))
-            self.dice_labels[-1].pack(side=tk.LEFT, padx=5)
+        self.score_frame = tk.Frame(self.root, bg="#2E3B4E")
+        self.score_frame.place(x=850, y=50)  # dreapta sus
 
-        # Bob's dices
-        self.bob_frame = tk.Frame(self.root)
-        self.bob_frame.pack(side=tk.TOP, fill=tk.X)
-
-        # Bob label
-        self.bob_label = tk.Label(
-            self.bob_frame, text="Player: Bob", font=("Arial", 24))
-        self.bob_label.pack()
-
-        # Bob dices
-        self.bob_dice_labels = []
-        self.bob_dice_buttons = []
-        for i in range(5):
-            button = tk.Button(self.bob_frame, text="Bob's Die " + str(i + 1), font=(
-                "Arial", 18), width=5, command=lambda i=i: self.toggle_bob_dice_selection(i))
-            button.pack(side=tk.LEFT, padx=5)
-            self.bob_dice_buttons.append(button)
-            self.bob_dice_labels.append(
-                tk.Label(self.bob_frame, text="1", font=("Arial", 18), width=5))
-            self.bob_dice_labels[-1].pack(side=tk.LEFT, padx=5)
-
-        # Scores table frame
-        self.score_frame = tk.Frame(self.root)
-        self.score_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=20)
-
-        # Scores
-        self.score_labels = {}
-        for score_name in self.game.get_player_scores().keys():
-            label = tk.Label(self.score_frame,
-                             text=score_name, font=("Arial", 16))
-            label.pack(anchor=tk.W)
-            score_entry = tk.Entry(
-                self.score_frame, font=("Arial", 16), width=5)
-            score_entry.pack(anchor=tk.W)
-            self.score_labels[score_name] = score_entry
-
-        # Bob scores
-        self.bob_score_labels = {}
-        for score_name in self.game.get_bob_scores().keys():
-            label = tk.Label(self.score_frame, text=score_name +
-                             " (Bob)", font=("Arial", 16))
-            label.pack(anchor=tk.W)
-            score_entry = tk.Entry(
-                self.score_frame, font=("Arial", 16), width=5)
-            score_entry.pack(anchor=tk.W)
-            self.bob_score_labels[score_name] = score_entry
-
-        # points label
-        self.player_score_label = tk.Label(
-            self.player_frame, text="Score: 0", font=("Arial", 18))
-        self.player_score_label.pack()
-
-        self.bob_score_label = tk.Label(
-            self.bob_frame, text="Score: 0", font=("Arial", 18))
-        self.bob_score_label.pack()
+        self.create_score_frame()
 
         self.root.mainloop()
 
+    def create_dice_widgets(self, row_offset=0, button_command=None, button_state=tk.NORMAL):
+        """Creează butoanele și etichetele pentru zarurile jucătorului și Bob"""
+        buttons = []
+        labels = []
+        for i in range(5):
+            button = tk.Button(self.dice_frame, text=f"Die {i + 1}", **self.button_style,
+                               width=5, command=lambda i=i: button_command(i) if button_command else None,
+                               state=button_state)
+            button.grid(row=row_offset, column=i, padx=5, pady=5)
+            buttons.append(button)
+
+            label = tk.Label(self.dice_frame, text="1",
+                             **self.label_style, width=5)
+            label.grid(row=row_offset + 1, column=i, padx=5, pady=5)
+            labels.append(label)
+        return buttons, labels
+
+    def create_score_frame(self):
+        """Creează frame-ul și etichetele pentru scoruri"""
+        self.score_labels = self.create_score_widgets("Your Scores", 0)
+        self.bob_score_labels = self.create_score_widgets("Bob's Scores", 2)
+
+        self.player_score_label = tk.Label(
+            self.score_frame, text="Score: 0", **self.label_style)
+        self.player_score_label.grid(
+            row=len(self.game.get_player_scores()) + 2, column=0, pady=10)
+
+        self.bob_score_label = tk.Label(
+            self.score_frame, text="Score: 0", **self.label_style)
+        self.bob_score_label.grid(
+            row=len(self.game.get_bob_scores()) + 2, column=2, pady=10)
+
+    def create_score_widgets(self, text, col_offset):
+        """Creează etichetele și câmpurile de scor pentru un jucător"""
+        tk.Label(self.score_frame, text=text, **
+                 self.label_style).grid(row=0, column=col_offset, padx=10)
+
+        score_entries = {}
+        for i, score_name in enumerate(self.game.get_player_scores().keys()):
+            tk.Label(self.score_frame, text=score_name, **
+                     self.label_style).grid(row=i + 1, column=col_offset, padx=10, pady=5)
+            score_entry = tk.Entry(
+                self.score_frame, font=("Arial", 16), width=5)
+            score_entry.grid(row=i + 1, column=col_offset + 1, padx=10)
+            score_entries[score_name] = score_entry
+
+        return score_entries
+
     def play(self):
-        # Player's throw
+        """Execută o rundă de zaruri pentru jucător și Bob"""
         self.game.player.roll_dice()
-        for i, label in enumerate(self.dice_labels):
-            label.config(text=str(self.game.get_player_dice_values()[i]))
+        self.update_dice_labels(
+            self.dice_labels, self.game.get_player_dice_values())
 
-        # Bob's throw
         self.game.roll_bob_dice()
-        for i, label in enumerate(self.bob_dice_labels):
-            label.config(text=str(self.game.get_bob_dice_values()[i]))
+        self.update_dice_labels(self.bob_dice_labels,
+                                self.game.get_bob_dice_values())
 
-        # Scores TODO
         self.update_scores()
 
+    def update_dice_labels(self, labels, values):
+        """Actualizează valorile afișate pe zaruri"""
+        for label, value in zip(labels, values):
+            label.config(text=str(value))
+
     def update_scores(self):
-        # TODO
+        """Actualizează scorurile jucătorilor"""
         self.player_score_label.config(
             text="Score: " + str(sum(self.game.get_player_dice_values())))
         self.bob_score_label.config(
             text="Score: " + str(sum(self.game.get_bob_dice_values())))
 
     def toggle_dice_selection(self, index):
+        """Selectează/deselectează zarul jucătorului și actualizează culoarea butonului"""
         self.game.player.toggle_dice_selection(index)
         if self.game.player.selected_dice[index]:
-            self.dice_buttons[index].config(relief=tk.SUNKEN, bg='yellow')
+            self.dice_buttons[index].config(bg='#9400D3')
         else:
-            self.dice_buttons[index].config(relief=tk.RAISED, bg='lightgrey')
-
-    def toggle_bob_dice_selection(self, index):
-        self.game.bob.toggle_dice_selection(index)
-        if self.game.bob.selected_dice[index]:
-            self.bob_dice_buttons[index].config(relief=tk.SUNKEN, bg='yellow')
-        else:
-            self.bob_dice_buttons[index].config(
-                relief=tk.RAISED, bg='lightgrey')
+            self.dice_buttons[index].config(bg='#FF00FF')
