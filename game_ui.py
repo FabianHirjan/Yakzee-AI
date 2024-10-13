@@ -1,157 +1,153 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog
-from dice import Dice
-from player import Player
-import random
+from game import Game
 
 
-class YahtzeeGameGUI:
+class DiceUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Yahtzee Game")
+        self.root.title("Yakzee Dice Game")
+        self.game = Game()
 
-        self.no_of_dices = 5
-        self.dices = [Dice(6) for _ in range(self.no_of_dices)]
-        self.kept_dice_values = [None] * self.no_of_dices
-        self.kept_dices = []
+        self.roll_count = 0
+        self.kept_indices = []
+        self.selected_formations = set()  # selected formations
 
-        self.player = Player("You")
-        self.bob = Player("Bob")
+        self.player_frame = tk.Frame(root)
+        self.player_frame.pack(side=tk.BOTTOM, padx=20, pady=20)
 
-        self.rolls_left = 3
+        self.bob_frame = tk.Frame(root)
+        self.bob_frame.pack(side=tk.TOP, padx=20, pady=20)
 
-        self.dice_labels = []
-        self.dice_buttons = []
-        self.create_widgets()
-        self.update_dice_display()
+        self.setup_player_ui()
+        self.setup_bob_ui()
+        self.setup_listbox()
 
-    def create_widgets(self):
-        tk.Label(self.root, text="Your Dice:").grid(
-            row=0, column=0, columnspan=5)
+        self.start_game()
 
-        for i in range(self.no_of_dices):
-            dice_label = tk.Label(self.root, text="0", font=("Helvetica", 20))
-            dice_label.grid(row=1, column=i)
-            self.dice_labels.append(dice_label)
+    def setup_player_ui(self):
+        self.player_dice = [self.create_dice_label(
+            self.player_frame) for _ in range(5)]
+        self.keep_buttons = [self.create_keep_button(i) for i in range(5)]
+        self.player_button = tk.Button(
+            self.player_frame, text="Roll", command=self.roll_dice)
+        self.player_button.pack(side=tk.BOTTOM, pady=10)
 
-            dice_button = tk.Button(
-                self.root, text="Keep", command=lambda i=i: self.toggle_keep_dice(i))
-            dice_button.grid(row=2, column=i)
-            self.dice_buttons.append(dice_button)
+    def create_dice_label(self, parent):
+        label = tk.Label(parent, text=str(0), font=("Helvetica", 32))
+        label.pack(side=tk.LEFT, padx=5)
+        return label
 
-        self.roll_button = tk.Button(
-            self.root, text="Roll", command=self.roll_dices)
-        self.roll_button.grid(row=3, column=0, columnspan=5)
+    def create_keep_button(self, index):
+        button = tk.Button(self.player_frame, text=f"Keep {index + 1}",
+                           command=lambda: self.keep_dice(index))
+        button.pack(side=tk.LEFT, padx=5)
+        return button
 
-        self.formations_label = tk.Label(
-            self.root, text="Formations: None", font=("Helvetica", 14))
-        self.formations_label.grid(row=4, column=0, columnspan=5)
+    def setup_bob_ui(self):
+        self.bob_dice = [self.create_dice_label(
+            self.bob_frame) for _ in range(5)]
 
-        self.scores_label = tk.Label(
-            self.root, text="Your Score: 0\nBob's Score: 0", font=("Helvetica", 14))
-        self.scores_label.grid(row=5, column=0, columnspan=5)
+    def setup_listbox(self):
+        self.listbox = tk.Listbox(
+            self.root, width=50, height=30, font=("Helvetica", 12))
+        self.listbox.pack(side=tk.RIGHT, padx=20, pady=20)
+        self.listbox.bind('<<ListboxSelect>>', self.select_formation)
 
-        self.player_formations_frame = tk.Frame(self.root)
-        self.player_formations_frame.grid(row=6, column=0, columnspan=5)
+    def roll_dice(self):
+        if self.roll_count < 3:
+            rolled_values = self.game.roll_dices(self.kept_indices)
+            self.update_dice_display(rolled_values)
+            possible_formations = self.game.player.suggest_formation(
+                rolled_values)
+            self.update_listbox(possible_formations)
+            self.roll_count += 1
+        else:
+            print("You have reached the maximum number of rolls for this round.")
 
-        self.update_formations_display()
+    def update_dice_display(self, rolled_values):
+        for i, die in enumerate(self.player_dice):
+            die.config(text=str(rolled_values[i]))
 
-    def roll_dices(self):
-        if self.rolls_left > 0:
-            rolled_values = []
-            for i in range(self.no_of_dices):
-                if i not in self.kept_dices:
-                    roll_value = self.dices[i].roll()
-                    self.kept_dice_values[i] = roll_value
-                rolled_values.append(self.kept_dice_values[i])
-
-            self.update_dice_display()
-            self.rolls_left -= 1
-            possible_formations = self.player.suggest_formation(rolled_values)
-
-            if possible_formations:
-                self.formations_label.config(
-                    text=f"Formations: {', '.join(possible_formations)}")
+    def update_listbox(self, possible_formations):
+        self.listbox.delete(0, tk.END)
+        all_formations = self.game.player.formations.keys()
+        for formation in all_formations:
+            if formation in self.selected_formations:
+                score = self.game.player.scores.get(formation, 0)
+                self.listbox.insert(
+                    tk.END, f"{formation} (Done, {score} points)")
             else:
-                self.formations_label.config(text="Formations: None")
+                # check if it's a possible formation
+                if any(formation == p[0] for p in possible_formations):
+                    score = [p[1]
+                             for p in possible_formations if p[0] == formation][0]
+                    self.listbox.insert(
+                        tk.END, f"{formation} (Score: {score})")
+                else:
+                    self.listbox.insert(tk.END, f"{formation} (Not Available)")
 
-            if self.rolls_left == 0:
-                self.choose_formation(possible_formations)
+    def select_formation(self, event):
+        selected_index = self.listbox.curselection()
+        if selected_index:
+            selected_formation = self.listbox.get(selected_index).split(
+                " (")[0]
+            if selected_formation not in self.selected_formations:
+                self.selected_formations.add(selected_formation)
+                self.game.player.keep_score(
+                    selected_formation, self.game.kept_dice_values)
+                print(
+                    f"Formation '{selected_formation}' selected with score {self.game.player.scores[selected_formation]}.")
+                self.roll_count = 0  # Reset roll count for next round
+                self.start_next_turn()
 
-    def update_dice_display(self):
-        for i, dice_value in enumerate(self.kept_dice_values):
-            self.dice_labels[i].config(
-                text=str(dice_value) if dice_value else "0")
-
-    def toggle_keep_dice(self, dice_index):
-        if dice_index in self.kept_dices:
-            self.kept_dices.remove(dice_index)
-            self.dice_buttons[dice_index].config(text="Keep")
+    def keep_dice(self, index):
+        if index in self.kept_indices:
+            self.kept_indices.remove(index)
+            self.game.keep_dice(index, keep=False)
+            self.keep_buttons[index].config(text=f"Keep {index + 1}")
+            print(f"Dice {index + 1} released.")
         else:
-            self.kept_dices.append(dice_index)
-            self.dice_buttons[dice_index].config(text="Unkeep")
+            self.kept_indices.append(index)
+            self.game.keep_dice(index)
+            self.keep_buttons[index].config(text=f"Unkeep {index + 1}")
+            print(f"Dice {index + 1} kept.")
 
-    def choose_formation(self, possible_formations):
-        if not possible_formations:
-            messagebox.showinfo(
-                "No Formation", "No valid formation available!")
-            return
+    def start_game(self):
+        self.round = 1
+        self.total_rounds = 13
+        self.start_next_turn()
 
-        chosen_formation = simpledialog.askstring(
-            "Choose Formation", f"Possible formations: {', '.join(possible_formations)}")
-
-        if chosen_formation and chosen_formation in possible_formations:
-            self.player.scores[chosen_formation] = [
-                v for v in self.kept_dice_values]
-            self.update_formations_display()
-            messagebox.showinfo("Formation Chosen",
-                                f"You chose: {chosen_formation}")
-            self.end_turn()
+    def start_next_turn(self):
+        if self.round <= self.total_rounds:
+            print(f"\n--- Round {self.round} ---")
+            print("Your turn:")
+            self.play_player_turn()
         else:
-            messagebox.showinfo("Invalid Selection",
-                                "Invalid formation chosen!")
+            self.display_final_scores()
 
-    def update_formations_display(self):
-        for widget in self.player_formations_frame.winfo_children():
-            widget.destroy()
+    def play_player_turn(self):
+        self.roll_count = 0
+        self.kept_indices = []
+        self.update_dice_display([0] * 5)
+        self.update_listbox([])
+        self.player_button.config(state=tk.NORMAL)
+        self.root.after(1000, self.play_bob_turn)
 
-        for formation in range(1, 7):
-            score = self.player.scores.get(f"{formation}s", 0)
-            tk.Label(self.player_formations_frame,
-                     text=f"{formation}s: {score}").pack(anchor='w')
+    def play_bob_turn(self):
+        print("Bob's turn:")
+        self.game.play_round(self.game.bob)
+        self.round += 1
+        self.start_next_turn()
 
-        advanced_formations = ["Yahtzee!", "Four of a Kind", "Full House",
-                               "Three of a Kind", "Large Straight", "Small Straight", "Two Pairs", "One Pair"]
-        for formation in advanced_formations:
-            score = self.player.scores.get(formation, 0)
-            tk.Label(self.player_formations_frame,
-                     text=f"{formation}: {score}").pack(anchor='w')
-
-    def end_turn(self):
-        # Reset pentru un nou tur
-        self.rolls_left = 3
-        self.kept_dice_values = [None] * self.no_of_dices
-        self.kept_dices = []
-        self.update_dice_display()
-        self.bob_turn()
-
-    def bob_turn(self):
-        # Bob face mișcările sale random
-        rolled_values = [random.randint(1, 6) for _ in range(self.no_of_dices)]
-        possible_formations = self.bob.suggest_formation(rolled_values)
-        chosen_formation = random.choice(possible_formations)
-        self.bob.scores[chosen_formation] = rolled_values
-
-        # Actualizăm scorurile
-        self.scores_label.config(
-            text=f"Your Score: {sum(self.player.scores.values())}\nBob's Score: {sum(self.bob.scores.values())}")
-        messagebox.showinfo(
-            "Bob's Turn", f"Bob chose formation: {chosen_formation}")
-
-        self.rolls_left = 3
+    def display_final_scores(self):
+        print("\nGame over! Final scores:")
+        print(f"Your scores: {self.game.player.scores}")
+        print(f"Bob's scores: {self.game.bob.scores}")
+        print("Winner: You" if sum(self.game.player.scores.values())
+              > sum(self.game.bob.scores.values()) else "Winner: Bob")
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    game = YahtzeeGameGUI(root)
+    app = DiceUI(root)
     root.mainloop()
