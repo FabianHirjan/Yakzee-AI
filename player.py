@@ -12,7 +12,6 @@ class Player:
         possible_formations = []
 
         # Adăugăm perechile ones, twos etc.
-        possible_formations.extend([f"{i}s" for i in range(1, 7)])
 
         # Verificăm diverse formații avansate
         if 5 in counts_values:

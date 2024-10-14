@@ -65,6 +65,7 @@ class YahtzeeGameGUI:
                     self.kept_dice_values[i] = roll_value
                 rolled_values.append(self.kept_dice_values[i])
 
+            print(f"Rolled values: {rolled_values}")  # Console feedback
             self.update_dice_display()
             self.rolls_left -= 1
             possible_formations = self.player.suggest_formation(rolled_values)
@@ -72,8 +73,11 @@ class YahtzeeGameGUI:
             if possible_formations:
                 self.formations_label.config(
                     text=f"Formations: {', '.join(possible_formations)}")
+                # Console feedback
+                print(f"Possible formations: {possible_formations}")
             else:
                 self.formations_label.config(text="Formations: None")
+                print("No valid formations suggested.")  # Console feedback
 
             if self.rolls_left == 0:
                 self.choose_formation(possible_formations)
@@ -87,9 +91,11 @@ class YahtzeeGameGUI:
         if dice_index in self.kept_dices:
             self.kept_dices.remove(dice_index)
             self.dice_buttons[dice_index].config(text="Keep")
+            print(f"Dice {dice_index + 1} unkept.")  # Console feedback
         else:
             self.kept_dices.append(dice_index)
             self.dice_buttons[dice_index].config(text="Unkeep")
+            print(f"Dice {dice_index + 1} kept.")  # Console feedback
 
     def choose_formation(self, possible_formations):
         if not possible_formations:
@@ -101,10 +107,10 @@ class YahtzeeGameGUI:
             "Choose Formation", f"Possible formations: {', '.join(possible_formations)}")
 
         if chosen_formation and chosen_formation in possible_formations:
-            # Calculate the score based on kept dice values
-            # Modify this line if scoring logic is different
             score = sum(self.kept_dice_values)
             self.player.scores[chosen_formation] = score
+            # Console feedback
+            print(f"Chosen formation: {chosen_formation} with score {score}")
             self.update_formations_display()
             messagebox.showinfo("Formation Chosen",
                                 f"You chose: {chosen_formation}")
@@ -112,6 +118,7 @@ class YahtzeeGameGUI:
         else:
             messagebox.showinfo("Invalid Selection",
                                 "Invalid formation chosen!")
+            print("Invalid formation choice.")  # Console feedback
 
     def update_formations_display(self):
         for widget in self.player_formations_frame.winfo_children():
@@ -130,7 +137,7 @@ class YahtzeeGameGUI:
                      text=f"{formation}: {score}").pack(anchor='w')
 
     def end_turn(self):
-        # Reset for a new turn
+        print("Ending turn.")  # Console feedback
         self.rolls_left = 3
         self.kept_dice_values = [None] * self.no_of_dices
         self.kept_dices = []
@@ -138,16 +145,18 @@ class YahtzeeGameGUI:
         self.bob_turn()
 
     def bob_turn(self):
-        # Bob makes random moves
         rolled_values = [random.randint(1, 6) for _ in range(self.no_of_dices)]
+        print(f"Bob rolled: {rolled_values}")  # Console feedback
         possible_formations = self.bob.suggest_formation(rolled_values)
 
         if possible_formations:
             chosen_formation = random.choice(possible_formations)
-            score = sum(rolled_values)  # Calculate the score for Bob
+            score = sum(rolled_values)
             self.bob.scores[chosen_formation] = score
+            # Console feedback
+            print(
+                f"Bob chose formation: {chosen_formation} with score {score}")
 
-            # Update the scores label
             self.scores_label.config(
                 text=f"Your Score: {sum(self.player.scores.values())}\nBob's Score: {sum(self.bob.scores.values())}")
             messagebox.showinfo(

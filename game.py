@@ -8,20 +8,17 @@ class Game:
     def __init__(self):
         self.no_of_dices = 5
         self.dices = [Dice(6) for _ in range(self.no_of_dices)]
-        # Inițializez cu None pentru zarurile neținute
         self.kept_dice_values = [None] * self.no_of_dices
-        self.player = Player("You")  # Jucătorul uman
-        self.bob = Player("Bob")     # Adversarul computerizat
+        self.player = Player("You")
+        self.bob = Player("Bob")
 
     def roll_dices(self, kept_dices):
         rolled_values = []
         for i in range(self.no_of_dices):
-            if (i + 1) in kept_dices:  # Verificăm dacă zarul este ținut
-                # Folosim valoarea deja păstrată
+            if (i + 1) in kept_dices:
                 rolled_values.append(f'Kept({self.kept_dice_values[i]})')
             else:
                 roll_value = self.dices[i].roll()
-                # Salvăm valoarea rulatei pentru a putea fi ținută
                 self.kept_dice_values[i] = roll_value
                 rolled_values.append(roll_value)
         print(f"Rolled dices: {rolled_values}")
@@ -62,7 +59,6 @@ class Game:
                     else:
                         print("No valid formation suggestions.")
                 else:
-                    # Bob face o mișcare random
                     chosen_formation = random.choice(possible_formations)
                     player.scores[chosen_formation] = rolled_values
                     print(
@@ -79,7 +75,7 @@ class Game:
     def start_game(self):
         print("Game started!")
         print("You and Bob will take turns to roll the dice and choose formations.")
-        rounds = 13  # Fiecare jucător are 13 runde
+        rounds = 13
         for round in range(1, rounds + 1):
             print(f"\n--- Round {round} ---")
             print("Your turn:")
