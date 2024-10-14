@@ -101,8 +101,10 @@ class YahtzeeGameGUI:
             "Choose Formation", f"Possible formations: {', '.join(possible_formations)}")
 
         if chosen_formation and chosen_formation in possible_formations:
-            self.player.scores[chosen_formation] = [
-                v for v in self.kept_dice_values]
+            # Calculate the score based on kept dice values
+            # Modify this line if scoring logic is different
+            score = sum(self.kept_dice_values)
+            self.player.scores[chosen_formation] = score
             self.update_formations_display()
             messagebox.showinfo("Formation Chosen",
                                 f"You chose: {chosen_formation}")
@@ -128,7 +130,7 @@ class YahtzeeGameGUI:
                      text=f"{formation}: {score}").pack(anchor='w')
 
     def end_turn(self):
-        # Reset pentru un nou tur
+        # Reset for a new turn
         self.rolls_left = 3
         self.kept_dice_values = [None] * self.no_of_dices
         self.kept_dices = []
@@ -136,17 +138,20 @@ class YahtzeeGameGUI:
         self.bob_turn()
 
     def bob_turn(self):
-        # Bob face mișcările sale random
+        # Bob makes random moves
         rolled_values = [random.randint(1, 6) for _ in range(self.no_of_dices)]
         possible_formations = self.bob.suggest_formation(rolled_values)
-        chosen_formation = random.choice(possible_formations)
-        self.bob.scores[chosen_formation] = rolled_values
 
-        # Actualizăm scorurile
-        self.scores_label.config(
-            text=f"Your Score: {sum(self.player.scores.values())}\nBob's Score: {sum(self.bob.scores.values())}")
-        messagebox.showinfo(
-            "Bob's Turn", f"Bob chose formation: {chosen_formation}")
+        if possible_formations:
+            chosen_formation = random.choice(possible_formations)
+            score = sum(rolled_values)  # Calculate the score for Bob
+            self.bob.scores[chosen_formation] = score
+
+            # Update the scores label
+            self.scores_label.config(
+                text=f"Your Score: {sum(self.player.scores.values())}\nBob's Score: {sum(self.bob.scores.values())}")
+            messagebox.showinfo(
+                "Bob's Turn", f"Bob chose formation: {chosen_formation}")
 
         self.rolls_left = 3
 
