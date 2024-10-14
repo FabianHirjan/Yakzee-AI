@@ -29,7 +29,7 @@ class YahtzeeGameGUI:
         tk.Label(self.root, text="Your Dice:").grid(
             row=0, column=0, columnspan=5)
 
-        for i in range(self.no_of_dices):
+        for i, dice in enumerate(self.dices):
             dice_label = tk.Label(self.root, text="0", font=("Helvetica", 20))
             dice_label.grid(row=1, column=i)
             self.dice_labels.append(dice_label)
@@ -58,29 +58,30 @@ class YahtzeeGameGUI:
 
     def roll_dices(self):
         if self.rolls_left > 0:
-            rolled_values = []
-            for i in range(self.no_of_dices):
-                if i not in self.kept_dices:
-                    roll_value = self.dices[i].roll()
-                    self.kept_dice_values[i] = roll_value
-                rolled_values.append(self.kept_dice_values[i])
-
-            print(f"Rolled values: {rolled_values}")  # Console feedback
+            self.roll_all_dices()
             self.update_dice_display()
             self.rolls_left -= 1
-            possible_formations = self.player.suggest_formation(rolled_values)
 
-            if possible_formations:
-                self.formations_label.config(
-                    text=f"Formations: {', '.join(possible_formations)}")
-                # Console feedback
-                print(f"Possible formations: {possible_formations}")
-            else:
-                self.formations_label.config(text="Formations: None")
-                print("No valid formations suggested.")  # Console feedback
+            possible_formations = self.player.suggest_formation(
+                self.kept_dice_values)
+            self.display_possible_formations(possible_formations)
 
             if self.rolls_left == 0:
                 self.choose_formation(possible_formations)
+
+    def roll_all_dices(self):
+        for i, dice in enumerate(self.dices):
+            if i not in self.kept_dices:
+                self.kept_dice_values[i] = dice.roll()
+
+    def display_possible_formations(self, possible_formations):
+        if possible_formations:
+            self.formations_label.config(
+                text=f"Formations: {', '.join(possible_formations)}")
+            print(f"Possible formations: {possible_formations}")
+        else:
+            self.formations_label.config(text="Formations: None")
+            print("No valid formations suggested.")
 
     def update_dice_display(self):
         for i, dice_value in enumerate(self.kept_dice_values):
@@ -91,11 +92,11 @@ class YahtzeeGameGUI:
         if dice_index in self.kept_dices:
             self.kept_dices.remove(dice_index)
             self.dice_buttons[dice_index].config(text="Keep")
-            print(f"Dice {dice_index + 1} unkept.")  # Console feedback
+            print(f"Dice {dice_index + 1} unkept.")
         else:
             self.kept_dices.append(dice_index)
             self.dice_buttons[dice_index].config(text="Unkeep")
-            print(f"Dice {dice_index + 1} kept.")  # Console feedback
+            print(f"Dice {dice_index + 1} kept.")
 
     def choose_formation(self, possible_formations):
         if not possible_formations:
@@ -109,26 +110,21 @@ class YahtzeeGameGUI:
         if chosen_formation and chosen_formation in possible_formations:
             score = sum(self.kept_dice_values)
             self.player.scores[chosen_formation] = score
-            # Console feedback
             print(f"Chosen formation: {chosen_formation} with score {score}")
             self.update_formations_display()
             messagebox.showinfo("Formation Chosen",
                                 f"You chose: {chosen_formation}")
-            self.end_turn()
+            self.root.after(100, self.end_turn)
         else:
             messagebox.showinfo("Invalid Selection",
                                 "Invalid formation chosen!")
-            print("Invalid formation choice.")  # Console feedback
+            print("Invalid formation choice.")
 
     def update_formations_display(self):
         for widget in self.player_formations_frame.winfo_children():
             widget.destroy()
 
-        for formation in range(1, 7):
-            score = self.player.scores.get(f"{formation}s", 0)
-            tk.Label(self.player_formations_frame,
-                     text=f"{formation}s: {score}").pack(anchor='w')
-
+        # Afișează doar formațiile avansate
         advanced_formations = ["Yahtzee!", "Four of a Kind", "Full House",
                                "Three of a Kind", "Large Straight", "Small Straight", "Two Pairs", "One Pair"]
         for formation in advanced_formations:
@@ -137,23 +133,19 @@ class YahtzeeGameGUI:
                      text=f"{formation}: {score}").pack(anchor='w')
 
     def end_turn(self):
-        print("Ending turn.")  # Console feedback
-        self.rolls_left = 3
-        self.kept_dice_values = [None] * self.no_of_dices
-        self.kept_dices = []
-        self.update_dice_display()
-        self.bob_turn()
+        print("Ending turn.")
+        self.reset_dices()  # Using the new function
+        self.root.after(100, self.bob_turn)
 
     def bob_turn(self):
         rolled_values = [random.randint(1, 6) for _ in range(self.no_of_dices)]
-        print(f"Bob rolled: {rolled_values}")  # Console feedback
+        print(f"Bob rolled: {rolled_values}")
         possible_formations = self.bob.suggest_formation(rolled_values)
 
         if possible_formations:
             chosen_formation = random.choice(possible_formations)
             score = sum(rolled_values)
             self.bob.scores[chosen_formation] = score
-            # Console feedback
             print(
                 f"Bob chose formation: {chosen_formation} with score {score}")
 
@@ -162,7 +154,13 @@ class YahtzeeGameGUI:
             messagebox.showinfo(
                 "Bob's Turn", f"Bob chose formation: {chosen_formation}")
 
+        self.reset_dices()
+
+    def reset_dices(self):
         self.rolls_left = 3
+        self.kept_dice_values = [None] * self.no_of_dices
+        self.kept_dices = []
+        self.update_dice_display()
 
 
 if __name__ == "__main__":

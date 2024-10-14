@@ -4,16 +4,13 @@ from collections import Counter
 class Player:
     def __init__(self, name):
         self.name = name
-        self.scores = {}  # Un dicționar pentru a păstra scorul pe diverse combinații
+        self.scores = {}
 
     def suggest_formation(self, rolled_values):
         counts = Counter(rolled_values)
         counts_values = list(counts.values())
         possible_formations = []
 
-        # Adăugăm perechile ones, twos etc.
-
-        # Verificăm diverse formații avansate
         if 5 in counts_values:
             possible_formations.append("Yahtzee!")
         elif 4 in counts_values:
