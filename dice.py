@@ -9,13 +9,19 @@ class Dice:
         self.value = 1
         self.position = position
         self.size = 50
+        self.isKept = False
+        # Definirea rect-ului
+        self.rect = pygame.Rect(position[0], position[1], self.size, self.size)
 
     def roll(self):
-        self.value = random.randint(1, 6)
+        if not self.isKept:
+            self.value = random.randint(1, 6)
 
     def draw(self, screen):
-        pygame.draw.rect(
-            screen, BLACK, (self.position[0], self.position[1], self.size, self.size), 2)
+        color = (0, 255, 0) if self.isKept else (
+            255, 0, 0)  # Culoare în funcție de starea isKept
+        # Folosește self.rect pentru desenare
+        pygame.draw.rect(screen, color, self.rect, 2)
         self.draw_text(screen)
 
     def draw_text(self, screen):
@@ -23,3 +29,9 @@ class Dice:
         text_surface = font.render(str(self.value), True, BLACK)
         screen.blit(
             text_surface, (self.position[0] + 15, self.position[1] + 10))
+
+    def keep(self):
+        self.isKept = True
+
+    def unkeep(self):
+        self.isKept = False

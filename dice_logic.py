@@ -68,8 +68,6 @@ def yahtzee(dices):
 def chance(dices):
     return sum([dice.value for dice in dices])
 
-# Urmează restul funcțiilor: two_pairs, three_of_a_kind etc.
-
 
 formations = ["One Pair", "Two Pairs", "Three of a Kind", "Four of a Kind",
               "Full House", "Small Straight", "Large Straight", "Yahtzee", "Chance"]
