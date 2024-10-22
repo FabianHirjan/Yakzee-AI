@@ -3,15 +3,17 @@ from uielement import Label
 from dice_logic import formations
 
 # Define the scoresheet area
-SCORESHEET_X = 600
-SCORESHEET_Y = 150
+# SCORESHEET_X = 600
+# SCORESHEET_Y = 150
 SCORESHEET_WIDTH = 180
 SCORESHEET_HEIGHT = 300
 
 
 class ScoreSheet:
-    def __init__(self):
+    def __init__(self, SCORESHEET_X, SCORESHEET_Y):
         self.scores = {}
+        self.SCORESHEET_X = SCORESHEET_X
+        self.SCORESHEET_Y = SCORESHEET_Y
 
     def add_score(self, formation, score):
         self.scores[formation] = score
@@ -25,10 +27,12 @@ class ScoreSheet:
         for formation in formations:
             if formation in self.scores:
                 score = self.scores[formation]
-                label = Label(f"{formation}: {score}", (SCORESHEET_X, SCORESHEET_Y + y_offset),
+                label = Label(f"{formation}: {score}", (self.SCORESHEET_X, self.SCORESHEET_Y + y_offset),
                               SMALL_FONT, (128, 128, 128))  # gri pentru formațiile deja folosite
+                print(
+                    f"Label {formation} created at {self.SCORESHEET_X}, {self.SCORESHEET_Y + y_offset}")
             else:
-                label = Label(f"{formation}: ", (SCORESHEET_X, SCORESHEET_Y + y_offset),
+                label = Label(f"{formation}: ", (self.SCORESHEET_X, self.SCORESHEET_Y + y_offset),
                               SMALL_FONT, (255, 255, 255))  # alb pentru cele nefolosite
             labels.append(label)
             y_offset += 20

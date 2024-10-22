@@ -15,23 +15,30 @@ FONT = pygame.font.Font(None, 36)
 SMALL_FONT = pygame.font.Font(None, 16)
 
 
-def update_screen(game, labels=[], formation_labels=[]):
-    """Actualizează ecranul cu jocul și orice etichete adiționale."""
-    screen.fill((0, 0, 0))  # Curăță ecranul
-    game.draw(screen)  # Desenează zarurile jucătorului
-    game.draw_bob_dices(screen)  # Desenează zarurile lui Bob
+def update_screen(game, labels=[], player_formation_labels=[], bob_formation_labels=[]):
+    """Actualizează ecranul cu jocul și etichetele pentru jucător și Bob."""
+    screen.fill((0, 0, 0))  # Curățăm ecranul
+    game.draw(screen)  # Desenăm zarurile jucătorului
+    game.draw_bob_dices(screen)  # Desenăm zarurile lui Bob
 
+    # Desenăm etichetele generale (de ex., indicatoare de rundă)
     for label in labels:
-        label.draw(screen)  # Desenează fiecare etichetă
-    for label in formation_labels:
-        label.draw(screen)  # Desenează fiecare etichetă de formație
-    pygame.display.update()  # Actualizează ecranul
+        label.draw(screen)
+
+    # Desenăm etichetele de formație ale jucătorului
+    for label in player_formation_labels:
+        label.draw(screen)
+
+    # Desenăm etichetele de formație ale lui Bob
+    for label in bob_formation_labels:
+        label.draw(screen)
+
+    pygame.display.update()  # Actualizăm ecranul
 
 
 def player_turn(game, scoresheet):
     """Funcție pentru runda unui jucător."""
     available_rolls = 3
-    # Schimbare text alb pentru vizibilitate
     label = Label("Player's turn", (315, 255), FONT, (255, 255, 255))
     rollsLabel = Label(
         f"Rolls left {available_rolls}", (325, 400), FONT, (255, 255, 255))
@@ -46,19 +53,17 @@ def player_turn(game, scoresheet):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if game.roll_button.is_clicked(event.pos):
                     game.roll_dices()
-                    print([dice.value for dice in game.dices])
                     available_rolls -= 1
                     rollsLabel = Label(
                         f"Rolls left {available_rolls}", (325, 400), FONT, (255, 255, 255))
-                else:  # Check for dice clicks
+                else:
                     for dice in game.dices:
                         if dice.rect.collidepoint(event.pos):
                             if dice.isKept:
                                 dice.unkeep()
                             else:
                                 dice.keep()
-                            break  # Only toggle one dice at a time
-
+                            break
     selected_formation = choose_formation(game, scoresheet)
     print("End of turn")
     return selected_formation
@@ -67,7 +72,8 @@ def player_turn(game, scoresheet):
 def bob_turn(game, scoresheet_bob):
     """Funcția care gestionează runda lui Bob."""
     game.roll_bob_dices()  # Rulează zarurile lui Bob
-    update_screen(game, formation_labels=scoresheet_bob.get_labels())
+    # Modificarea aici!
+    update_screen(game, bob_formation_labels=scoresheet_bob.get_labels())
 
     eligible_formations = []
 
@@ -130,13 +136,13 @@ def choose_formation(game, scoresheet):
 def main():
     from scoresheet import ScoreSheet
     game = Game()
-    scoresheet_player = ScoreSheet()  # Tabela de scoruri a jucătorului
-    scoresheet_bob = ScoreSheet()  # Tabela de scoruri a lui Bob
+    scoresheet_player = ScoreSheet(600, 150)  # Tabela de scoruri a jucătorului
+    scoresheet_bob = ScoreSheet(150, 150)  # Tabela de scoruri a lui Bob
     running = True
     round = 0
 
     while running:
-        update_screen(game, [], scoresheet_player.get_labels() +
+        update_screen(game, [], scoresheet_player.get_labels(),
                       scoresheet_bob.get_labels())
 
         for event in pygame.event.get():
@@ -149,6 +155,7 @@ def main():
                 dice.unkeep()
 
             # Tura jucătorului
+            # Transmitem scoresheet_player corect
             player_turn(game, scoresheet_player)
 
             # Tura lui Bob
