@@ -29,8 +29,6 @@ class ScoreSheet:
                 score = self.scores[formation]
                 label = Label(f"{formation}: {score}", (self.SCORESHEET_X, self.SCORESHEET_Y + y_offset),
                               SMALL_FONT, (128, 128, 128))  # gri pentru formațiile deja folosite
-                print(
-                    f"Label {formation} created at {self.SCORESHEET_X}, {self.SCORESHEET_Y + y_offset}")
             else:
                 label = Label(f"{formation}: ", (self.SCORESHEET_X, self.SCORESHEET_Y + y_offset),
                               SMALL_FONT, (255, 255, 255))  # alb pentru cele nefolosite

@@ -45,8 +45,8 @@ def full_house(dices):
 
 
 def small_straight(dices):
-    dices_values = sorted([dice.value for dice in dices])
-    if dices_values == [1, 2, 3, 4, 5] or dices_values == [2, 3, 4, 5, 6]:
+    dices_values = sorted(set([dice.value for dice in dices]))
+    if [1, 2, 3, 4] == dices_values[:4] or [2, 3, 4, 5] == dices_values[1:5] or [3, 4, 5, 6] == dices_values[2:6]:
         return 30
     return 0
 

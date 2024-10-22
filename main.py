@@ -36,7 +36,7 @@ def update_screen(game, labels=[], player_formation_labels=[], bob_formation_lab
     pygame.display.update()  # Actualizăm ecranul
 
 
-def player_turn(game, scoresheet):
+def player_turn(game, scoresheet_player, scoresheet_bob):
     """Funcție pentru runda unui jucător."""
     available_rolls = 3
     label = Label("Player's turn", (315, 255), FONT, (255, 255, 255))
@@ -44,7 +44,9 @@ def player_turn(game, scoresheet):
         f"Rolls left {available_rolls}", (325, 400), FONT, (255, 255, 255))
 
     while available_rolls > 0:
-        update_screen(game, [label, rollsLabel], scoresheet.get_labels())
+        # Actualizăm ecranul cu ambele tabele, inclusiv tabela lui Bob
+        update_screen(game, [label, rollsLabel], scoresheet_player.get_labels(
+        ), bob_formation_labels=scoresheet_bob.get_labels())
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -64,16 +66,18 @@ def player_turn(game, scoresheet):
                             else:
                                 dice.keep()
                             break
-    selected_formation = choose_formation(game, scoresheet)
+    selected_formation = choose_formation(game, scoresheet_player)
     print("End of turn")
     return selected_formation
 
 
-def bob_turn(game, scoresheet_bob):
+def bob_turn(game, scoresheet_player, scoresheet_bob):
     """Funcția care gestionează runda lui Bob."""
     game.roll_bob_dices()  # Rulează zarurile lui Bob
-    # Modificarea aici!
-    update_screen(game, bob_formation_labels=scoresheet_bob.get_labels())
+
+    # Actualizăm ecranul cu ambele tabele de scor
+    update_screen(game, player_formation_labels=scoresheet_player.get_labels(
+    ), bob_formation_labels=scoresheet_bob.get_labels())
 
     eligible_formations = []
 
@@ -142,6 +146,7 @@ def main():
     round = 0
 
     while running:
+        # Actualizăm ecranul cu ambele tabele de scor
         update_screen(game, [], scoresheet_player.get_labels(),
                       scoresheet_bob.get_labels())
 
@@ -150,16 +155,15 @@ def main():
                 running = False
             game.handle_event(event)
 
-        if round < 13:
+        if round < 9:
             for dice in game.dices:
                 dice.unkeep()
 
-            # Tura jucătorului
-            # Transmitem scoresheet_player corect
-            player_turn(game, scoresheet_player)
+            # Tura jucătorului - transmitem scoresheet_bob ca parametru
+            player_turn(game, scoresheet_player, scoresheet_bob)
 
-            # Tura lui Bob
-            bob_turn(game, scoresheet_bob)
+            # Tura lui Bob - transmitem scoresheet_player ca parametru
+            bob_turn(game, scoresheet_player, scoresheet_bob)
 
             round += 1
         else:
