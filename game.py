@@ -23,13 +23,11 @@ class Game:
         self.roll_button.draw(screen)
 
     def roll_bob_dices(self):
-        """Rulează zarurile pentru Bob."""
         for dice in self.bob_dices:
             dice.roll()
 
     def draw_bob_dices(self, screen):
-        """Desenează zarurile lui Bob pe ecran."""
-        for dice in enumerate(self.bob_dices):
+        for i, dice in enumerate(self.bob_dices):
             dice.draw(screen)
 
     def handle_event(self, event):

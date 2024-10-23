@@ -10,7 +10,6 @@ class Dice:
         self.position = position
         self.size = 50
         self.isKept = False
-        # Definirea rect-ului
         self.rect = pygame.Rect(position[0], position[1], self.size, self.size)
 
     def roll(self):

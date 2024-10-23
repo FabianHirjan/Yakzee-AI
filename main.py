@@ -6,7 +6,7 @@ from uielement import Label
 from dice_logic import formations_check, formations
 
 pygame.init()
-# Setarea ferestrei
+
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Dice Game')
@@ -16,12 +16,10 @@ SMALL_FONT = pygame.font.Font(None, 16)
 
 
 def update_screen(game, labels=[], player_formation_labels=[], bob_formation_labels=[]):
-    """Actualizează ecranul cu jocul și etichetele pentru jucător și Bob."""
     screen.fill((0, 0, 0))
 
     game.draw(screen)
     game.draw_bob_dices(screen)
-
     print(f"Drawing {len(labels)} labels")
 
     for label in labels:
@@ -38,7 +36,7 @@ def update_screen(game, labels=[], player_formation_labels=[], bob_formation_lab
 
 
 def player_turn(game, scoresheet_player, scoresheet_bob):
-    """Funcție pentru runda unui jucător."""
+
     available_rolls = 3
     label = Label("Player's turn", (315, 255), FONT, (255, 255, 255))
     rollsLabel = Label(
@@ -77,7 +75,6 @@ def player_turn(game, scoresheet_player, scoresheet_bob):
 
 
 def bob_turn(game, scoresheet_player, scoresheet_bob):
-    """Funcția care gestionează runda lui Bob."""
     game.roll_bob_dices()
     update_screen(game, player_formation_labels=scoresheet_player.get_labels(
     ), bob_formation_labels=scoresheet_bob.get_labels())
@@ -98,7 +95,6 @@ def bob_turn(game, scoresheet_player, scoresheet_bob):
 
 
 def choose_formation(game, scoresheet):
-    """Permite jucătorului să aleagă o formație validă după rulare sau să aleagă o formație cu 0 puncte."""
     eligible_formations = []
     formation_labels = []
 
@@ -108,6 +104,7 @@ def choose_formation(game, scoresheet):
             color = (0, 255, 0) if score > 0 else (255, 0, 0)
             formation_label = Label(
                 f"{i+1}. {formation} - {score}", (675, 200 + i * 25), SMALL_FONT, color)
+
             eligible_formations.append((formation_label, formation, score))
             formation_labels.append(formation_label)
 
@@ -153,7 +150,6 @@ def main():
         if round < 9:
             for dice in game.dices:
                 dice.unkeep()
-
             player_turn(game, scoresheet_player, scoresheet_bob)
             for dice in game.dices:
                 dice.value = 0
