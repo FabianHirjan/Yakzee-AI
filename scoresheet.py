@@ -38,3 +38,6 @@ class ScoreSheet:
 
     def get_total_score(self):
         return sum(self.scores.values())
+
+    def clear_scores(self):
+        self.scores = {}

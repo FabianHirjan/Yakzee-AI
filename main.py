@@ -18,11 +18,16 @@ SMALL_FONT = pygame.font.Font(None, 16)
 def update_screen(game, labels=[], player_formation_labels=[], bob_formation_labels=[]):
     """Actualizează ecranul cu jocul și etichetele pentru jucător și Bob."""
     screen.fill((0, 0, 0))  # Curățăm ecranul
+
     game.draw(screen)  # Desenăm zarurile jucătorului
     game.draw_bob_dices(screen)  # Desenăm zarurile lui Bob
 
+    # Debug pentru a vedea câte etichete avem de desenat
+    print(f"Drawing {len(labels)} labels")
+
     # Desenăm etichetele generale (de ex., indicatoare de rundă)
     for label in labels:
+        print(f"Drawing label: {label.text}")  # Debugging text etichetă
         label.draw(screen)
 
     # Desenăm etichetele de formație ale jucătorului
@@ -40,13 +45,17 @@ def player_turn(game, scoresheet_player, scoresheet_bob):
     """Funcție pentru runda unui jucător."""
     available_rolls = 3
     label = Label("Player's turn", (315, 255), FONT, (255, 255, 255))
+    # Afișăm rulările rămase
     rollsLabel = Label(
-        f"Rolls left {available_rolls}", (325, 400), FONT, (255, 255, 255))
-
+        f"Remaining Rolls: {available_rolls}", (325, 150), FONT, (255, 255, 255))
+    update_screen(game, [label, rollsLabel], scoresheet_player.get_labels(),
+                  bob_formation_labels=scoresheet_bob.get_labels())
+    # Debug pentru a verifica câte rulări sunt
+    print(f"Initial remaining rolls: {available_rolls}")
     while available_rolls > 0:
-        # Actualizăm ecranul cu ambele tabele, inclusiv tabela lui Bob
-        update_screen(game, [label, rollsLabel], scoresheet_player.get_labels(
-        ), bob_formation_labels=scoresheet_bob.get_labels())
+        # Actualizăm ecranul cu toate etichetele (inclusiv rulările rămase)
+        update_screen(game, [label, rollsLabel], scoresheet_player.get_labels(),
+                      bob_formation_labels=scoresheet_bob.get_labels())
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -56,8 +65,12 @@ def player_turn(game, scoresheet_player, scoresheet_bob):
                 if game.roll_button.is_clicked(event.pos):
                     game.roll_dices()
                     available_rolls -= 1
+                    # Debug pentru rulări
+                    print(
+                        f"Roll button clicked, remaining rolls: {available_rolls}")
+                    # Actualizăm label-ul rulărilor
                     rollsLabel = Label(
-                        f"Rolls left {available_rolls}", (325, 400), FONT, (255, 255, 255))
+                        f"Remaining Rolls: {available_rolls}", (265, 400), FONT, (0, 0, 0))
                 else:
                     for dice in game.dices:
                         if dice.rect.collidepoint(event.pos):
@@ -66,6 +79,7 @@ def player_turn(game, scoresheet_player, scoresheet_bob):
                             else:
                                 dice.keep()
                             break
+
     selected_formation = choose_formation(game, scoresheet_player)
     print("End of turn")
     return selected_formation
@@ -161,7 +175,8 @@ def main():
 
             # Tura jucătorului - transmitem scoresheet_bob ca parametru
             player_turn(game, scoresheet_player, scoresheet_bob)
-
+            for dice in game.dices:
+                dice.value = 0
             # Tura lui Bob - transmitem scoresheet_player ca parametru
             bob_turn(game, scoresheet_player, scoresheet_bob)
 
@@ -170,7 +185,8 @@ def main():
             print("Game Over")
             print("Total score (Player):", scoresheet_player.get_total_score())
             print("Total score (Bob):", scoresheet_bob.get_total_score())
-
+            scoresheet_bob.clear_scores()
+            scoresheet_player.clear_scores()
     pygame.quit()
 
 

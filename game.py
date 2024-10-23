@@ -10,6 +10,7 @@ class Game:
         self.dices = [Dice((150 + i * 100, 450)) for i in range(5)]
         self.roll_button = Button("Roll Dice", (325, 550), (120, 50))
         self.bob_dices = [Dice((150 + i * 100, 100)) for i in range(5)]
+        self.reset_button = Button("Reset", (325, 300), (120, 50))
 
     def roll_dices(self):
         for dice in self.dices:

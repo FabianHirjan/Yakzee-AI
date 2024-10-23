@@ -31,7 +31,8 @@ class Dice:
             text_surface, (self.position[0] + 15, self.position[1] + 10))
 
     def keep(self):
-        self.isKept = True
+        if self.value != 0:
+            self.isKept = True
 
     def unkeep(self):
         self.isKept = False
