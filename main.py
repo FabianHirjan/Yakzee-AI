@@ -182,11 +182,31 @@ def main():
 
             round += 1
         else:
-            print("Game Over")
-            print("Total score (Player):", scoresheet_player.get_total_score())
-            print("Total score (Bob):", scoresheet_bob.get_total_score())
-            scoresheet_bob.clear_scores()
-            scoresheet_player.clear_scores()
+
+            player_score = scoresheet_player.get_total_score()
+            bob_score = scoresheet_bob.get_total_score()
+            winner = "Player" if player_score > bob_score else "Bob" if bob_score > player_score else "No one, it's a tie!"
+            
+            
+            game_over_label = Label("Game Over", (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 - 40), FONT, (255, 0, 0))
+            winner_label = Label(f"Winner: {winner}", (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2), FONT, (255, 0, 0))
+            
+            
+            update_screen(game, [game_over_label, winner_label], scoresheet_player.get_labels(), scoresheet_bob.get_labels())
+            pygame.display.update()
+
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_r:  
+                            waiting = False
+                            round = 0  
+                            scoresheet_player.clear_scores()  
+                            scoresheet_bob.clear_scores()  
+                        elif event.key == pygame.K_q:  
+                            waiting = False
+                            running = False
     pygame.quit()
 
 
