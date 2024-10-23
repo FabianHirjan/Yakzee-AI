@@ -29,8 +29,7 @@ class Game:
 
     def draw_bob_dices(self, screen):
         """Desenează zarurile lui Bob pe ecran."""
-        for i, dice in enumerate(self.bob_dices):
-            # Zarurile lui Bob, mai sus pe ecran
+        for dice in enumerate(self.bob_dices):
             dice.draw(screen)
 
     def handle_event(self, event):

@@ -2,7 +2,7 @@ from main import SMALL_FONT
 from uielement import Label
 from dice_logic import formations
 
-# Define the scoresheet area
+
 # SCORESHEET_X = 600
 # SCORESHEET_Y = 150
 SCORESHEET_WIDTH = 180
@@ -28,10 +28,10 @@ class ScoreSheet:
             if formation in self.scores:
                 score = self.scores[formation]
                 label = Label(f"{formation}: {score}", (self.SCORESHEET_X, self.SCORESHEET_Y + y_offset),
-                              SMALL_FONT, (128, 128, 128))  # gri pentru formațiile deja folosite
+                              SMALL_FONT, (128, 128, 128))  # gri
             else:
                 label = Label(f"{formation}: ", (self.SCORESHEET_X, self.SCORESHEET_Y + y_offset),
-                              SMALL_FONT, (255, 255, 255))  # alb pentru cele nefolosite
+                              SMALL_FONT, (255, 255, 255))  # alb
             labels.append(label)
             y_offset += 20
         return labels

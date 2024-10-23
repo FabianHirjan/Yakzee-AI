@@ -19,8 +19,7 @@ class Dice:
 
     def draw(self, screen):
         color = (0, 255, 0) if self.isKept else (
-            255, 0, 0)  # Culoare în funcție de starea isKept
-        # Folosește self.rect pentru desenare
+            255, 0, 0)
         pygame.draw.rect(screen, color, self.rect, 2)
         self.draw_text(screen)
 
