@@ -221,4 +221,4 @@ class YahtzeeAutoTrainer:
 
 if __name__ == "__main__":
     trainer = YahtzeeAutoTrainer()
-    trainer.train(num_games=1000000, save_interval=10000, log_interval=1000)
+    trainer.train(num_games=100000000, save_interval=10000, log_interval=1000)
