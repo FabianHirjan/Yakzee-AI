@@ -6,19 +6,17 @@ from collections import Counter, defaultdict
 
 class InteractiveYahtzeeGame:
     def __init__(self, master):
-        """
-        Initializes the interactive Yahtzee game.
-        """
+        
         self.master = master
         self.master.title("Yahtzee")
-        self.master.geometry("900x600")  # Set the window size
-        self.state = "START"  # Initial game state
-        self.rolls_left = 3  # Number of dice rolls allowed per turn
-        self.dice = [0] * 5  # Initialize dice to all zeros
-        self.selected = [False] * 5  # Track which dice are selected
-        self.scores = {"Player": {}, "AI": {}}  # Scores for both players
-        self.current_player = "Player"  # The current player
-        self.categories = [  # Available scoring categories
+        self.master.geometry("900x600")  
+        self.state = "START"  
+        self.rolls_left = 3  
+        self.dice = [0] * 5 
+        self.selected = [False] * 5  
+        self.scores = {"Player": {}, "AI": {}}  
+        self.current_player = "Player" 
+        self.categories = [ 
             "Three of a kind",
             "Four of a kind",
             "Full House",
@@ -28,79 +26,71 @@ class InteractiveYahtzeeGame:
             "Chance",
         ]
 
-        # Initialize scores for each category for both players
+       
         for player in self.scores:
             for category in self.categories:
                 self.scores[player][category] = None
 
-        # Load pre-trained Q-tables
-        self.q_table_dice = defaultdict(lambda: np.zeros(32))  # Q-Table for dice selection
-        self.q_table_category = defaultdict(lambda: np.zeros(len(self.categories)))  # Q-Table for category selection
+       
+        self.q_table_dice = defaultdict(lambda: np.zeros(32)) 
+        self.q_table_category = defaultdict(lambda: np.zeros(len(self.categories)))
         self.load_trained_ai()
 
-        # AI Parameters
-        self.epsilon = 0.0  # AI always exploits (no exploration in the interactive game)
+       
+        self.epsilon = 0.0  
 
-        # Display the policy in console
+        
         self.display_policy()
 
-        # Set up the GUI
+        
         self.create_widgets()
-        self.set_state("ROLLING")  # Start in the rolling state
+        self.set_state("ROLLING")  
 
     def display_dice_policy(self):
-        """
-        Displays the optimal policy for dice selection based on the Q-Table.
-        """
+       
         print("=== Dice Selection Policy ===")
         for state, q_values in self.q_table_dice.items():
-            best_action = np.argmax(q_values)  # Optimal action for this state
+            best_action = np.argmax(q_values)  
             dice_selection = self.action_to_dice_selection(best_action)
             print(f"State: {state} -> Action: {best_action}, Dice Selection: {dice_selection}")
 
     def display_category_policy(self):
-        """
-        Displays the optimal policy for category selection based on the Q-Table.
-        """
+       
         print("=== Category Selection Policy ===")
         for state, q_values in self.q_table_category.items():
-            best_action = np.argmax(q_values)  # Optimal action for this state
+            best_action = np.argmax(q_values) 
             chosen_category = self.categories[best_action]
             print(f"State: {state} -> Action: {best_action}, Chosen Category: {chosen_category}")
 
     def display_policy(self):
-        """
-        Displays the complete policy determined by the Q-Tables.
-        """
+       
         print("\n=== Complete Policy ===")
         self.display_dice_policy()
         self.display_category_policy()
 
     def create_widgets(self):
-        """
-        Creates the graphical components of the game.
-        """
+        
         self.title_label = tk.Label(self.master, text="Yahtzee", font=("Arial", 20))
         self.title_label.pack()
 
-        # Frame for the dice buttons
+        
         self.dice_frame = tk.Frame(self.master)
         self.dice_frame.pack(pady=10)
 
-        self.dice_buttons = []  # Buttons representing the dice
+        self.dice_buttons = []  
         for i in range(5):
             btn = tk.Button(
                 self.dice_frame,
-                text="Die 1",  # Placeholder text
+                text="Die 1", 
                 font=("Arial", 14),
                 width=8,
                 height=2,
-                command=lambda i=i: self.toggle_dice(i),  # Toggle dice selection
+                command=lambda i=i: self.toggle_dice(i),  
             )
             btn.grid(row=0, column=i, padx=5)
             self.dice_buttons.append(btn)
 
-        # Frame for control buttons (Roll and Choose Category)
+       
         self.control_frame = tk.Frame(self.master)
         self.control_frame.pack(pady=10)
 
@@ -114,32 +104,30 @@ class InteractiveYahtzeeGame:
         )
         self.end_turn_button.pack(side="left", padx=10)
 
-        # Label for game messages
+        
         self.message_label = tk.Label(self.master, text="", font=("Arial", 14))
         self.message_label.pack(pady=10)
 
-        # Frame for displaying scores
+        
         self.score_frame = tk.Frame(self.master)
         self.score_frame.pack(pady=20)
 
-        # Create score tables for Player and AI
+        
         self.player_score_frame = self.create_score_table("Player", 0)
         self.ai_score_frame = self.create_score_table("AI", 1)
 
     def create_score_table(self, player, column):
-        """
-        Creates the score table for a player.
-        """
+       
         frame = tk.Frame(self.score_frame, borderwidth=2, relief="groove")
         frame.grid(row=0, column=column, padx=10, sticky="n")
 
-        # Title for the player's score section
+        
         title = tk.Label(frame, text=f"Score {player}", font=("Arial", 16))
         title.pack()
 
         self.scores[player]["labels"] = {}
 
-        # Add labels for each scoring category
+       
         for category in self.categories:
             row = tk.Frame(frame)
             row.pack(fill="x", pady=2)
@@ -155,9 +143,7 @@ class InteractiveYahtzeeGame:
         return frame
 
     def toggle_dice(self, index):
-        """
-        Toggles the selection of a die when clicked.
-        """
+       
         if self.state == "ROLLING" and self.current_player == "Player":
             self.selected[index] = not self.selected[index]
             self.dice_buttons[index].config(
@@ -165,9 +151,7 @@ class InteractiveYahtzeeGame:
             )
 
     def roll_dice(self):
-        """
-        Rolls the dice that are not selected.
-        """
+        
         if self.rolls_left > 0 and self.state == "ROLLING":
             for i in range(5):
                 if not self.selected[i]:
@@ -181,21 +165,15 @@ class InteractiveYahtzeeGame:
                 self.set_state("CHOOSE_CATEGORY")
 
     def update_dice_buttons(self):
-        """
-        Updates the text on the dice buttons to reflect their current values.
-        """
+        
         for i in range(5):
             self.dice_buttons[i].config(text=f"{self.dice[i]}")
 
     def choose_category(self):
-        """
-        Allows the player to choose a scoring category.
-        """
+        
 
         def score_category(category):
-            """
-            Assigns the score to the chosen category.
-            """
+           
             if self.scores[self.current_player][category] is not None:
                 self.message_label.config(text=f"Category {category} has already been used!")
                 return
@@ -216,13 +194,11 @@ class InteractiveYahtzeeGame:
                 label.unbind("<Button-1>")
 
     def set_state(self, state):
-        """
-        Updates the state of the game.
-        """
+        
         print(f"State change: {self.state} -> {state}")
         self.state = state
         if state == "ROLLING":
-            # Reset dice and allow rolling
+            
             self.rolls_left = 3
             self.selected = [False] * 5
             for btn in self.dice_buttons:
@@ -256,9 +232,7 @@ class InteractiveYahtzeeGame:
             self.end_turn_button.config(state="disabled")
 
     def update_score_table(self):
-        """
-        Updates the score table for each player.
-        """
+        
         for player, data in self.scores.items():
             for category, score in data.items():
                 if category != "labels":
@@ -266,9 +240,7 @@ class InteractiveYahtzeeGame:
                     label.config(text=str(score) if score is not None else "-")
 
     def is_game_over(self):
-        """
-        Checks if the game is over (all categories scored for both players).
-        """
+        
         for player in self.scores:
             for category, score in self.scores[player].items():
                 if category != "labels" and score is None:
@@ -276,9 +248,7 @@ class InteractiveYahtzeeGame:
         return True
 
     def ai_turn(self):
-        """
-        Handles the AI's turn.
-        """
+        
         print("AI starts its turn.")
         for i in range(5):
             self.dice[i] = random.randint(1, 6)
@@ -304,9 +274,7 @@ class InteractiveYahtzeeGame:
         self.set_state("CHOOSE_CATEGORY")
 
     def ai_choose_category(self):
-        """
-        Handles the AI's selection of a scoring category.
-        """
+        
         state = self.get_state_category()
 
         if state not in self.q_table_category:
@@ -335,9 +303,7 @@ class InteractiveYahtzeeGame:
             self.set_state("SWITCH_PLAYER")
 
     def calculate_score(self, category):
-        """
-        Calculates the score for a given category based on the current dice.
-        """
+        
         counts = Counter(self.dice)
         values = list(counts.values())
         if category == "Three of a kind" and max(values) >= 3:
@@ -357,9 +323,7 @@ class InteractiveYahtzeeGame:
         return 0
 
     def has_straight(self, length):
-        """
-        Checks if there is a straight of the given length in the dice.
-        """
+        
         unique = sorted(set(self.dice))
         for i in range(len(unique) - length + 1):
             if unique[i:i + length] == list(range(unique[i], unique[i] + length)):
@@ -367,30 +331,22 @@ class InteractiveYahtzeeGame:
         return False
 
     def get_state_dice(self):
-        """
-        Returns the state representation for dice selection.
-        """
+        
         counts = Counter(self.dice)
         return tuple(counts[i] for i in range(1, 7)), self.rolls_left
 
     def get_state_category(self):
-        """
-        Returns the state representation for category selection.
-        """
+        
         counts = Counter(self.dice)
         return tuple(counts[i] for i in range(1, 7))
 
     def action_to_dice_selection(self, action):
-        """
-        Converts an action into a dice selection binary array.
-        """
+        
         binary = bin(action)[2:].zfill(5)
         return [bit == '1' for bit in binary]
 
     def load_trained_ai(self, filename_dice="q_table_dice_final.pkl", filename_category="q_table_category_final.pkl"):
-        """
-        Loads the trained Q-tables for dice and category selection.
-        """
+        
         try:
             with open(filename_dice, "rb") as f:
                 loaded_q_table_dice = pickle.load(f)
